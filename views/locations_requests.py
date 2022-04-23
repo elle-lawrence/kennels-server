@@ -14,11 +14,7 @@ LOCATIONS = [
       "name": "Nashville",
       "address": "100 Copper Drive"
     }
-    # {
-    # "name": "East Nashville",
-    # "address": "975 Main St",
-    # "location": 2
-    # }
+
 ]
 
 def get_all_locations():
