@@ -1,3 +1,8 @@
+import sqlite3
+import json
+from models import Customer
+
+
 CUSTOMERS = [
     {
       "id": 1,
@@ -26,15 +31,15 @@ CUSTOMERS = [
     # }
 ]
 
-def get_all_customers():
-  return CUSTOMERS
+# def get_all_customers():
+#   return CUSTOMERS
 
 def get_single_customer(id):
     requested_customer = None
   
     for customer in CUSTOMERS:
-       if customer["id"] == id:
-         requested_customer = customer
+        if customer["id"] == id:
+            requested_customer = customer
  
     return requested_customer
 
@@ -61,3 +66,29 @@ def update_customer(id, new_customer):
         if customer["id"] == id:
             CUSTOMERS[index] = new_customer
             break
+      
+def get_all_customers():
+    with sqlite3.connect("./kennel.sqlite3") as conn:
+
+        conn.row_factory = sqlite3.Row
+        db_cursor = conn.cursor()
+
+        db_cursor.execute("""
+        SELECT
+          c.id,
+          c.name,
+          c.address,
+          c.location_id,
+          c.animal_id
+        FROM customer c
+        """)
+
+        customers = []
+
+        dataset = db_cursor.fetchall()
+
+        for row in dataset:
+            customer = Customer(row['id'], row['name'], row['address'], row['location_id'], row['animal_id'])
+            customers.append(customer.__dict__)
+
+    return json.dumps(customers)
