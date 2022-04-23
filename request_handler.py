@@ -1,21 +1,33 @@
 from http.server import BaseHTTPRequestHandler, HTTPServer
-from http.server import BaseHTTPRequestHandler, HTTPServer
-from views import get_all_animals
+from views.customers_requests import get_all_customers, get_single_customer, create_customer, delete_customer, update_customer
+from views.locations_requests import get_all_locations, get_single_location, create_location, delete_location, update_location
+from views.animal_requests import get_all_animals, get_single_animal, create_animal, delete_animal, update_animal
+from views.employees_requests import get_all_employees, get_single_employee, create_employee, delete_employee, update_employee
+import json
 
 
-# Here's a class. It inherits from another class.
-# For now, think of a class as a container for functions that
-# work together for a common purpose. In this case, that
-# common purpose is to respond to HTTP requests from a client.
 class HandleRequests(BaseHTTPRequestHandler):
-    # This is a Docstring it should be at the beginning of all classes and functions
-    # It gives a description of the class or function
     """Controls the functionality of any GET, PUT, POST, DELETE requests to the server
     """
 
-    # Here's a class function
+    def parse_url(self, path):
+        """parses the URL"""
+        path_params = path.split("/")
+        resource = path_params[1]
+        id = None
+
+        try:
+            id = int(path_params[2])
+        except IndexError:
+            pass  
+        except ValueError:
+            pass  
+
+        return (resource, id)
+   
+
+
     def _set_headers(self, status):
-        # Notice this Docstring also includes information about the arguments passed to the function
         """Sets the status code, Content-Type and Access-Control-Allow-Origin
         headers on the response
 
@@ -27,7 +39,7 @@ class HandleRequests(BaseHTTPRequestHandler):
         self.send_header('Access-Control-Allow-Origin', '*')
         self.end_headers()
 
-    # Another method! This supports requests with the OPTIONS verb.
+
     def do_OPTIONS(self):
         """Sets the options headers
         """
@@ -39,55 +51,126 @@ class HandleRequests(BaseHTTPRequestHandler):
                          'X-Requested-With, Content-Type, Accept')
         self.end_headers()
 
-    # Here's a method on the class that overrides the parent's method.
-    # It handles any GET request.
+
     def do_GET(self):
         """Handles GET requests to the server
         """
-        # Set the response code to 'Ok'
         self._set_headers(200)
+        response = {}
+        
+        (resource, id) = self.parse_url(self.path)
 
-        # Your new console.log() that outputs to the terminal
+        if resource == "animals":
+            if id is not None:
+                response = f"{get_single_animal(id)}"
+            else:
+                response = f"{get_all_animals()}"
+    
+        if resource == "locations":
+            if id is not None:
+                response = f"{get_single_location(id)}"
+
+            else:
+                response = f"{get_all_locations()}"
+        
+        if resource == "employees":
+            if id is not None:
+                response = f"{get_single_employee(id)}"
+            else:
+                response = f"{get_all_employees()}"
+                
+        if resource == "customers":
+            if id is not None:
+                response = f"{get_single_customer(id)}"
+            else:
+                response = f"{get_all_customers()}"
+                
+        # print(f"this is the path {self.path}")
+        # print(f"resource = {resource}, id = {id}")
+
+        
+
+        self.wfile.write(response.encode())
         print(self.path)
 
-        # It's an if..else statement
-        if self.path == "/animals":
-            response = get_all_animals()
-        else:
-            response = []
 
-        # This weird code sends a response back to the client
-        self.wfile.write(f"{response}".encode())
-
-    # Here's a method on the class that overrides the parent's method.
-    # It handles any POST request.
     def do_POST(self):
-        """Handles POST requests to the server
-        """
-        # Set response code to 'Created'
         self._set_headers(201)
-
         content_len = int(self.headers.get('content-length', 0))
         post_body = self.rfile.read(content_len)
-        response = f"received post request:<br>{post_body}"
-        self.wfile.write(response.encode())
+        post_body = json.loads(post_body)
 
-    # Here's a method on the class that overrides the parent's method.
-    # It handles any PUT request.
+        (resource, id) = self.parse_url(self.path)
 
+        response = None
+        
+        if resource == "customers":
+            response = create_customer(post_body)
+            
+        if resource == "animals":
+            response = create_animal(post_body)
+        
+        if resource == "employees":
+            response = create_employee(post_body)
+            
+        if resource == "locations":
+            response = create_location(post_body)
+        # new_location = None
+        # if resource == "locations":
+        #     new_location = create_location(post_body)
+
+        #     self.wfile.write(f"{new_location}".encode())
+        
+            
+        self.wfile.write(f"{response}".encode())
+        
+    def do_DELETE(self):
+        self._set_headers(204)
+
+        (resource, id) = self.parse_url(self.path)
+
+        if resource == "animals":
+            delete_animal(id)
+        if resource == "customers":
+            delete_customer(id)
+        if resource == "locations":
+            delete_location(id)
+        if resource == "employees":
+            delete_employee(id)   
+            
+        self.wfile.write("".encode())
+        
     def do_PUT(self):
-        """Handles PUT requests to the server
-        """
-        self.do_POST()
+        self._set_headers(204)
+        content_len = int(self.headers.get('content-length', 0))
+        post_body = self.rfile.read(content_len)
+        post_body = json.loads(post_body)
 
+        (resource, id) = self.parse_url(self.path)
 
-# This function is not inside the class. It is the starting
-# point of this application.
+        if resource == "animals":
+            update_animal(id, post_body)
+
+        if resource == "customers":
+            update_customer(id, post_body)
+            
+        if resource == "employees":
+            update_employee(id, post_body)
+            
+        if resource == "locations":
+            update_location(id, post_body)
+            
+        self.wfile.write("".encode())
+        
+#def test_funct():
+#   print("hello world")
+
 def main():
     """Starts the server on port 8088 using the HandleRequests class
     """
     host = ''
     port = 8088
+#    test_funct()
     HTTPServer((host, port), HandleRequests).serve_forever()
 
 
