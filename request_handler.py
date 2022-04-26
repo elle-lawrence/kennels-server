@@ -41,7 +41,21 @@ class HandleRequests(BaseHTTPRequestHandler):
             return (resource, id)
    
 
+#  def parse_url(self, path):
+#         """parses the URL"""
+#         path_params = path.split("/")
+#         resource = path_params[1]
+#         id = None
 
+#         try:
+#             id = int(path_params[2])
+#         except IndexError:
+#             pass  
+#         except ValueError:
+#             pass  
+
+#         return (resource, id)
+   
     def _set_headers(self, status):
         """Sets the status code, Content-Type and Access-Control-Allow-Origin
         headers on the response
