@@ -1,8 +1,8 @@
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from views.customers_requests import get_all_customers, get_single_customer, create_customer, delete_customer, update_customer, get_customers_by_email
 from views.locations_requests import get_all_locations, get_single_location, create_location, delete_location, update_location
-from views.animal_requests import get_all_animals, get_single_animal, create_animal, delete_animal, update_animal
-from views.employees_requests import get_all_employees, get_single_employee, create_employee, delete_employee, update_employee
+from views.animal_requests import get_all_animals, get_single_animal, create_animal, delete_animal, update_animal, get_animals_by_location, get_animals_by_status
+from views.employees_requests import get_all_employees, get_single_employee, create_employee, delete_employee, update_employee, get_employees_by_location
 import json
 
 
@@ -133,7 +133,7 @@ class HandleRequests(BaseHTTPRequestHandler):
         # items in it, which means the request was for
         # `/animals` or `/animals/2`
         if len(parsed) == 2:
-            ( resource, id ) = parsed
+            ( resource, id ) = parsed# pylint: disable=unbalanced-tuple-unpacking
 
             if resource == "animals":
                 if id is not None:
@@ -166,7 +166,13 @@ class HandleRequests(BaseHTTPRequestHandler):
             # email as a filtering value?
             if key == "email" and resource == "customers":
                 response = get_customers_by_email(value)
-
+            if key == "location_id" and resource == "employees":
+                response = get_employees_by_location(value)
+            if key == "location_id" and resource == "animals":
+                response = get_animals_by_location(value)
+            if key == "status" and resource == "animals":
+                response = get_animals_by_status(value)
+                
         self.wfile.write(response.encode())
 
     def do_POST(self):
@@ -175,7 +181,7 @@ class HandleRequests(BaseHTTPRequestHandler):
         post_body = self.rfile.read(content_len)
         post_body = json.loads(post_body)
 
-        (resource, id) = self.parse_url(self.path)
+        (resource, id) = self.parse_url(self.path)# pylint: disable=unbalanced-tuple-unpacking
 
         response = None
         
@@ -202,7 +208,7 @@ class HandleRequests(BaseHTTPRequestHandler):
     def do_DELETE(self):
         self._set_headers(204)
 
-        (resource, id) = self.parse_url(self.path)
+        (resource, id) = self.parse_url(self.path)# pylint: disable=unbalanced-tuple-unpacking
 
         if resource == "animals":
             delete_animal(id)
@@ -221,7 +227,7 @@ class HandleRequests(BaseHTTPRequestHandler):
         post_body = self.rfile.read(content_len)
         post_body = json.loads(post_body)
 
-        (resource, id) = self.parse_url(self.path)
+        (resource, id) = self.parse_url(self.path)# pylint: disable=unbalanced-tuple-unpacking
 
         if resource == "animals":
             update_animal(id, post_body)
