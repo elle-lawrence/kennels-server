@@ -68,3 +68,5 @@ FROM customer c
 WHERE c.id = 3;
 
 SELECT * FROM `Customer`;
+
+INSERT INTO `Animal` VALUES (null, "Daps", "Kennel", "Boxer", 2, 2);
